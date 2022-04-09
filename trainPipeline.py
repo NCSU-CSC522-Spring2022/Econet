@@ -24,13 +24,6 @@ class trainPipeline():
     def __init__(self, myPath):
         self.myFileList = glob.glob(myPath + "*.csv")
 
-    # def scaleData(self, dataFrame):
-    #     myDf = dataFrame
-    #     myScaler = StandardScaler()
-    #     myDfX = dataFrame["target"]
-    #     myDfY = dataFrame.drop(columns=["target"], axis = 1)
-    #     myScaledData = myScaler.fit_transform(myDfX)
-    #     return myScaledData
     
     def machineLearningModels(self, modelName):
         if modelName == "randomForest":
@@ -44,15 +37,6 @@ class trainPipeline():
         elif modelName == "knnClassifier":
             knnModel = KNeighborsClassifier(n_neighbors = 5, weights = 'distance', n_jobs=16)
             return knnModel
-    # def dummyEncoding(dataFrame):
-    #     dummyDf = pd.get_dummies(dataFrame.measure, prefix='measure')
-    #     encodedData = pd.concat([dataFrame[["Station", "Ob", "value", "target", "R_flag", "I_flag", "Z_flag", 'B_flag']], dummyDf], axis = 1)
-    #     encodedData = encodedData.set_index("Ob")
-    
-    # def scaleDataFeature(onHotEncodedDf):         SCALE DATA WHEN MAKING THE CSVs
-    #     for i in range(onHotEncodedDf[7:]):
-    #         if onHotEncodedDf[i]
-
     
     def trainPipeLine(self):
         
