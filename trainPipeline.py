@@ -22,9 +22,18 @@ import pickle
 class trainPipeline():
 
     def __init__(self, myPath):
-        self.myFileList = glob.glob(myPath + "*.csv")
+        self.myFileList = glob.glob(myPath + "fall1.csv")
 
-    
+    def resampleTrainingData(self, xTrain, yTrain):
+        print("Before tomek links")
+        print(yTrain.value_counts())
+        tl = TomekLinks(n_jobs=16)
+        xTrain, yTrain = tl.fit_resample(xTrain, yTrain)
+        print("After tomek links")
+        print(yTrain.value_counts())
+        return xTrain, yTrain
+
+
     def machineLearningModels(self, modelName):
         if modelName == "randomForest":
             randomForestModel = RandomForestClassifier(random_state=42, class_weight='balanced', n_jobs=16)
@@ -39,17 +48,18 @@ class trainPipeline():
             return knnModel
     
     def trainPipeLine(self):
-        
+        # print(self.myFileList)
         for i in range(len(self.myFileList)):
             myFileName = os.path.basename(self.myFileList[i])
             myFileName = os.path.splitext(myFileName)[0]
             readDf = pd.read_csv(self.myFileList[i], index_col=["Ob", "Station"])
-            readDf = readDf.drop(columns=["Unnamed: 0", "Unnamed: 0.1"])
+            # readDf = readDf.drop(columns=["Unnamed: 0", "Unnamed: 0.1"])
             readX = readDf.drop(columns=["target"], axis = 1)
             readY = readDf["target"]
             XTrain, XVal, yTrain, yVal = train_test_split(readX, readY, stratify = readY, test_size=0.3, random_state=42)
 
 
+            XTrain, yTrain = self.resampleTrainingData(XTrain, yTrain)
             modelCompDict = {}
             modelList = ["randomForest", "xgBoost"]
             for i in range(0, len(modelList)):
@@ -87,5 +97,5 @@ class trainPipeline():
             #     pickle.dump(myModel2, file = open(myFileName + ".sav",'wb'))
 
 if __name__ == "__main__":
-    myTrainObj = trainPipeline("/home/atharva/Atharva/NCSU/Sem2/ALDA/project/EcoNet1/Econet/data/splitData/seasonSplitData/")
+    myTrainObj = trainPipeline("/Users/vignesh/Desktop/Projects/Econet/splitSeasonData/")
     myTrainObj.trainPipeLine()
