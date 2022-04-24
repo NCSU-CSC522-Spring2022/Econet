@@ -28,8 +28,8 @@ class trainPipeline():
     def resampleTrainingData(self, xTrain, yTrain):
         print("Before resampling")
         print(yTrain.value_counts())
-        tl = TomekLinks(n_jobs=-1)
-        xTrain, yTrain = tl.fit_resample(xTrain, yTrain)
+        # tl = TomekLinks(n_jobs=-1)
+        # xTrain, yTrain = tl.fit_resample(xTrain, yTrain)
         # t2 = SMOTETomek(n_jobs=-1)
         # xTrain, yTrain = t2.fit_resample(xTrain, yTrain)
         print("After resampling")
@@ -56,7 +56,8 @@ class trainPipeline():
             myFileName = os.path.basename(self.myFileList[i])
             myFileName = os.path.splitext(myFileName)[0]
             readDf = pd.read_csv(self.myFileList[i]) #, index_col=["Station"]
-            readDf = readDf.drop(columns=["Unnamed: 0.2", "Station"])
+            readDf = readDf.drop(columns=["Station", "Ob"])
+            print(readDf.shape)
             readX = readDf.drop(columns=["target"], axis = 1)
             readY = readDf["target"]
             XTrain, XVal, yTrain, yVal = train_test_split(readX, readY, stratify = readY, test_size=0.3, random_state=42)
@@ -109,5 +110,5 @@ class trainPipeline():
             #     pickle.dump(myModel2, file = open(myFileName + ".sav",'wb'))
 
 if __name__ == "__main__":
-    myTrainObj = trainPipeline("C:/Users/sdharma2/Desktop/Econet/splitDataMod/")
+    myTrainObj = trainPipeline("/Users/vignesh/Desktop/Projects/Econet/splitDataMod/")
     myTrainObj.trainPipeLine()
