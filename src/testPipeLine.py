@@ -28,11 +28,11 @@ class TestPipeLine():
         self.modelFileList = glob.glob(self.basePath + "*.sav")
         self.testFilePath = testFilePath
         
-        self.fall1Model = None
-        self.fall2Model = None
+        self.springModel = None
         self.summer1Model = None
         self.summer2Model = None
-        self.springModel = None
+        self.fall1Model = None
+        self.fall2Model = None
         self.winterModel = None
     
     def loadModels(self):
@@ -56,36 +56,51 @@ class TestPipeLine():
                 self.winterModel = model
         
     # Function not used    
-    def myDummyOHE(self):
-        myTestDfX = pd.read_csv(self.testFilePath)
-        myTestDfX["Ob"] = pd.to_datetime(myTestDfX["Ob"], infer_datetime_format=True).dt.time
-        dummyDf = pd.get_dummies(myTestDfX.measure, prefix='measure')
-        print("Shape of dummyDf: ", dummyDf.shape)
-        print("dummyDf columns: ", dummyDf.columns)
-        encodedData = pd.concat([myTestDfX[["Station", "Ob", "value", "R_flag", "I_flag", "Z_flag", 'B_flag']], dummyDf], axis = 1)
-        # encodedData = encodedData.set_index("Ob")
-        return encodedData
+    # def myDummyOHE(self):
+    #     myTestDfX = pd.read_csv(self.testFilePath)
+    #     myTestDfX["Ob"] = pd.to_datetime(myTestDfX["Ob"], infer_datetime_format=True).dt.time
+    #     dummyDf = pd.get_dummies(myTestDfX.measure, prefix='measure')
+    #     print("Shape of dummyDf: ", dummyDf.shape)
+    #     print("dummyDf columns: ", dummyDf.columns)
+    #     encodedData = pd.concat([myTestDfX[["Station", "Ob", "value", "R_flag", "I_flag", "Z_flag", 'B_flag']], dummyDf], axis = 1)
+    #     # encodedData = encodedData.set_index("Ob")
+    #     return encodedData
 
     # Function not used
     def splitTestDf(self, myTestDfX):
 
         springStart = datetime.datetime(2021, 3, 1)
-        springEnd = datetime.datetime(2021, 5, 31)
-        winterStart = datetime.datetime(2021, 12, 1)
-        winterEnd = datetime.datetime(2021, 12, 31)
+        springEnd = datetime.datetime(2021, 5, 31, 23, 59, 59)   # add date and time context of end dates to make it inclusive
+
+        summer1Start = datetime.datetime(2021, 6, 1)
+        summer1End = datetime.datetime(2021, 7, 15, 23, 59, 59)
+        summer2Start = datetime.datetime(2021, 7, 16)
+        summer2End = datetime.datetime(2021, 8, 31, 23, 59, 59) # add date and time context of end dates to make it inclusive
+
+        fall1Start = datetime.datetime(2021, 9, 1)
+        fall1End = datetime.datetime(2021, 10, 15, 23, 59, 59)
+        fall2Start = datetime.datetime(2021, 10, 16)
+        fall2End = datetime.datetime(2021, 11, 30, 23, 59, 59)   # add date and time context of end dates to make it inclusive
+
+        winter1Start = datetime.datetime(2021, 12, 1)
+        winter1End = datetime.datetime(2021, 12, 31, 23, 59, 59)
         winter2Start = datetime.datetime(2021, 1, 1)
-        winter2End = datetime.datetime(2021, 2, 28)
+        winter2End = datetime.datetime(2021, 2, 28, 23, 59, 59) # add date and time context of end dates to make it inclusive
 
 
         springDf = myTestDfX[(myTestDfX["Ob"] >= springStart) & (myTestDfX["Ob"] <= springEnd)]
 
-        summerDf = myTestDfX[(myTestDfX["Ob"] >= summerStart) & (myTestDfX["Ob"] <= summerEnd)]
-        fallDf = myTestDfX[(myTestDfX["Ob"] >= fallStart) & (myTestDfX["Ob"] <= fallEnd)]
-        winterDf = myTestDfX[(myTestDfX["Ob"] >= winterStart) & (myTestDfX["Ob"] <= winterEnd)]
-        winter2Df = myTestDfX[(myTestDfX["Ob"] >= winter2Start) & (myTestDfX["Ob"] <= winter2End)]
-        winterDf = pd.concat([winterDf, winter2Df])
+        summer1Df = myTestDfX[(myTestDfX["Ob"] >= summer1Start) & (myTestDfX["Ob"] <= summer1End)]
+        summer2Df = myTestDfX[(myTestDfX["Ob"] >= summer2Start) & (myTestDfX["Ob"] <= summer2End)]
 
-        return springDf, summerDf, fallDf, winterDf
+        fall1Df = myTestDfX[(myTestDfX["Ob"] >= fall1Start) & (myTestDfX["Ob"] <= fall1End)]
+        fall2Df = myTestDfX[(myTestDfX["Ob"] >= fall2Start) & (myTestDfX["Ob"] <= fall2End)]
+
+        winter1Df = myTestDfX[(myTestDfX["Ob"] >= winter1Start) & (myTestDfX["Ob"] <= winter1End)]
+        winter2Df = myTestDfX[(myTestDfX["Ob"] >= winter2Start) & (myTestDfX["Ob"] <= winter2End)]
+        winterDf = pd.concat([winter1Df, winter2Df])
+
+        return springDf, summer1Df, summer2Df, fall1Df, fall2Df, winterDf
     
 
     # Function not used
@@ -171,7 +186,7 @@ if __name__ == "__main__":
     "/Users/vignesh/Desktop/Projects/Econet/splitDataMod/testEncoded.csv")
     testDf = pd.read_csv(testObj.testFilePath)
 
-    # testDf["Ob"] = pd.to_datetime(testDf["Ob"], infer_datetime_format=True)
+    testDf["Ob"] = pd.to_datetime(testDf["Ob"], infer_datetime_format=True)
 
     testPredictions = []
 

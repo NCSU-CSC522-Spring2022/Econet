@@ -28,8 +28,8 @@ class trainPipeline():
     def resampleTrainingData(self, xTrain, yTrain):
         print("Before resampling")
         print(yTrain.value_counts())
-        # tl = TomekLinks(n_jobs=-1)
-        # xTrain, yTrain = tl.fit_resample(xTrain, yTrain)
+        tl = TomekLinks(n_jobs=16)
+        xTrain, yTrain = tl.fit_resample(xTrain, yTrain)
         # t2 = SMOTETomek(n_jobs=-1)
         # xTrain, yTrain = t2.fit_resample(xTrain, yTrain)
         print("After resampling")
@@ -41,8 +41,8 @@ class trainPipeline():
         if modelName == "randomForest":
             param_grid = {'n_estimators': [400, 800, 1200],
                'max_features': ['auto'],
-               'max_depth': [50, 75, None],
-            #    'min_samples_split': [2,5,10],
+               'max_depth': [50, 75, 100, 150, None],
+               'min_samples_split': [2,5,10],
             #    'min_samples_leaf': [1,2,4],
             #    'bootstrap': [True, False],
                'criterion': ['gini', 'entropy']
@@ -53,6 +53,10 @@ class trainPipeline():
             return randomForestCVModel
         
         elif modelName == "xgBoost":
+            param_grid = {
+                'eta':[0.01, 0.05, 0.07, 0.1, 0.15, 0.2, 0.25],
+                'max_depth' : [10, 30, 50, 75]
+            }
             XGBoostModel = xgb.XGBClassifier()
             return XGBoostModel
     
@@ -73,7 +77,7 @@ class trainPipeline():
             XTrain, XVal, yTrain, yVal = train_test_split(readX, readY, stratify = readY, test_size=0.3, random_state=42)
 
 
-            # XTrain, yTrain = self.resampleTrainingData(XTrain, yTrain)
+            XTrain, yTrain = self.resampleTrainingData(XTrain, yTrain)
             modelCompDict = {}
             modelList = ["randomForest", "xgBoost"]
             for i in range(0, len(modelList)):
