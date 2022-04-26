@@ -147,7 +147,8 @@ class TestPipeLine():
 
 
 if __name__ == "__main__":
-    testObj = TestPipeLine("/Users/vignesh/Desktop/Projects/Econet/models/", "/Users/vignesh/Desktop/Projects/Econet/splitDataMod/testEncoded.csv")
+    testObj = TestPipeLine("/Users/vignesh/Desktop/Projects/Econet/models/", 
+    "/Users/vignesh/Desktop/Projects/Econet/splitDataMod/testEncoded.csv")
     testDf = pd.read_csv(testObj.testFilePath)
 
     # testDf["Ob"] = pd.to_datetime(testDf["Ob"], infer_datetime_format=True)

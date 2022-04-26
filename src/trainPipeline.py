@@ -39,8 +39,18 @@ class trainPipeline():
 
     def machineLearningModels(self, modelName):
         if modelName == "randomForest":
-            randomForestModel = RandomForestClassifier(random_state=42, class_weight='balanced', n_jobs=16)
-            return randomForestModel
+            param_grid = {'n_estimators': [400, 800, 1200],
+               'max_features': ['auto'],
+               'max_depth': [50, 75, None],
+            #    'min_samples_split': [2,5,10],
+            #    'min_samples_leaf': [1,2,4],
+            #    'bootstrap': [True, False],
+               'criterion': ['gini', 'entropy']
+            }
+
+            randomForestModel = RandomForestClassifier(random_state=42, n_jobs=16)
+            randomForestCVModel = GridSearchCV(estimator=randomForestModel, param_grid=param_grid, cv=3, n_jobs=16, verbose=4, scoring=f1_score)
+            return randomForestCVModel
         
         elif modelName == "xgBoost":
             XGBoostModel = xgb.XGBClassifier()
@@ -63,7 +73,7 @@ class trainPipeline():
             XTrain, XVal, yTrain, yVal = train_test_split(readX, readY, stratify = readY, test_size=0.3, random_state=42)
 
 
-            XTrain, yTrain = self.resampleTrainingData(XTrain, yTrain)
+            # XTrain, yTrain = self.resampleTrainingData(XTrain, yTrain)
             modelCompDict = {}
             modelList = ["randomForest", "xgBoost"]
             for i in range(0, len(modelList)):
@@ -92,7 +102,7 @@ class trainPipeline():
 
             modelList = list(modelCompDict.keys())
             bestModel = modelList[0]
-            pickle.dump(bestModel, file=open(myFileName + ".sav",'wb'))
+            pickle.dump(bestModel, file=open("/Users/vignesh/Desktop/Projects/Econet/models/" + myFileName + ".sav",'wb'))
             
             # myAccuracy1 = accuracy_score(yVal, myPredict1)
             # myF11 = f1_score(yVal, myPredict1)
