@@ -27,27 +27,33 @@ class TestPipeLine():
         self.basePath = modelsBasePath
         self.modelFileList = glob.glob(self.basePath + "*.sav")
         self.testFilePath = testFilePath
+        
+        self.fall1Model = None
+        self.fall2Model = None
+        self.summer1Model = None
+        self.summer2Model = None
         self.springModel = None
-        self.fallModel = None
-        self.summerModel = None
         self.winterModel = None
     
-    def loadModels(self, modelPath):
+    def loadModels(self):
         # print(self.modelFileList)
-        # for modelPath in self.modelFileList:
-        print(modelPath)
-        if "spring" in modelPath:
+        for modelPath in self.modelFileList:
+            print(modelPath)
             springModelLoc = open(modelPath, 'rb')
-            self.springModel = pickle.load(springModelLoc)
-        if "summer1" in modelPath:
-            summerModelLoc = open(modelPath, 'rb')
-            self.summerModel = pickle.load(summerModelLoc)
-        if "fall" in modelPath:
-            fallModelLoc = open(modelPath, 'rb')
-            self.fallModel = pickle.load(fallModelLoc)
-        if "winter" in modelPath:
-            winterModelLoc = open(modelPath, 'rb')
-            self.winterModel = pickle.load(winterModelLoc)
+            model = pickle.load(springModelLoc)
+            
+            if "spring" in modelPath:
+                self.springModel = model
+            elif "summer1" in modelPath:
+                self.summer1Model = model
+            elif "summer2" in modelPath:
+                self.summer2Model = model
+            elif "fall1" in modelPath:
+                self.fall1Model = model
+            elif "fall2" in modelPath:
+                self.fall2Model = model
+            elif "winter" in modelPath:
+                self.winterModel = model
         
     # Function not used    
     def myDummyOHE(self):
@@ -84,26 +90,40 @@ class TestPipeLine():
 
     # Function not used
     def predictClasses(self, dataFrame):
-        springDf, summerDf, fallDf, winterDf = self.splitTestDf(dataFrame)
-        springPredict = self.springModel.predict(springDf)
-        springPredictDf = pd.DataFrame(springPredict, index=springDf.index)
+        springDf, summer1Df, summer2Df, fall1Df, fall2Df, winterDf = self.splitTestDf(dataFrame)
 
-        summerPredict = self.summerModel.predict(summerDf)
-        summerPredictDf = pd.DataFrame(summerPredict, index=summerDf.index)
+        # Drop OB and station
+        springDf = springDf.drop(["Ob", "Station"], axis = 1)
+        springPredict = self.springModel.predict_proba(springDf)
+        springPredictDf = pd.DataFrame(springPredict[:,1], index=springDf.index)
 
-        fallPredict = self.fallModel.predict(fallDf)
-        fallPredictDf = pd.DataFrame(fallPredict, index=fallDf.index)
+        summer1Df = summer1Df.drop(["Ob", "Station"], axis = 1)
+        summer1Predict = self.summer1Model.predict_proba(summer1Df)
+        summer1PredictDf = pd.DataFrame(summer1Predict[:,1], index=summer1Df.index)
 
-        winterPredict = self.winterModel.predict(winterDf)
-        winterPredictDf = pd.DataFrame(winterPredict, index=winterDf.index)
+        summer2Df = summer2Df.drop(["Ob", "Station"], axis = 1)
+        summer2Predict = self.summer2Model.predict_proba(summer2Df)
+        summer2PredictDf = pd.DataFrame(summer2Predict[:,1], index=summer2Df.index)
 
-        concatenatedDf = springPredictDf.concat([summerPredictDf, fallPredictDf, winterPredictDf], axis = 0)
+        fall1Df = fall1Df.drop(["Ob", "Station"], axis = 1)
+        fall1Predict = self.fall1Model.predict_proba(fall1Df)
+        fall1PredictDf = pd.DataFrame(fall1Predict[:,1], index=fall1Df.index)
 
-        concatenatedDf.to_csv("predictedValues.csv")
+        fall2Df = fall2Df.drop(["Ob", "Station"], axis = 1)
+        fall2Predict = self.fall2Model.predict_proba(fall2Df)
+        fall2PredictDf = pd.DataFrame(fall2Predict[:,1], index=fall2Df.index)
+
+        winterPredict = self.winterModel.predict_proba(winterDf)
+        winterPredictDf = pd.DataFrame(winterPredict[:,1], index=winterDf.index)
+
+        concatenatedDf = springPredictDf.concat([summer1PredictDf, summer2PredictDf, fall1PredictDf, fall2PredictDf, winterPredictDf], axis = 0)
+
+        # concatenatedDf.to_csv("predictedValues.csv")
         # print(springDf.head())
         # print(summerDf.head())
         # print(fallDf.head())
         # print(winterDf.head())
+        return concatenatedDf
 
 
     def getSeasonValue(self, eachDataPoint):
@@ -154,21 +174,28 @@ if __name__ == "__main__":
     # testDf["Ob"] = pd.to_datetime(testDf["Ob"], infer_datetime_format=True)
 
     testPredictions = []
+
+    # load models initially
+    seasons = ["fall1", "fall2", "summer1", "summer2", "spring", "winter"]
+    testObj.loadModels()
+
+    # predict classes
+    testPredictions = testObj.predictClasses(testDf)    
     
     # split it by season
-    for i in range(0,testDf.shape[0]):
-        eachDataPoint = testDf.iloc[[i]]
-        modelName = testObj.getSeasonValue(eachDataPoint)
-        modelLoc = open(testObj.basePath + modelName + ".sav", 'rb')
-        model = pickle.load(modelLoc)
+    # for i in range(0,testDf.shape[0]):
+    #     eachDataPoint = testDf.iloc[[i]]
+    #     modelName = testObj.getSeasonValue(eachDataPoint)
+    #     modelLoc = open(testObj.basePath + modelName + ".sav", 'rb')
+    #     model = pickle.load(modelLoc)
         
-        eachDataPoint = eachDataPoint.drop(["Ob", "Station"], axis=1)
+    #     eachDataPoint = eachDataPoint.drop(["Ob", "Station"], axis=1)
 
-        # Make predictions - note the use of proba
-        test_pred = model.predict_proba(eachDataPoint)
-        testPredictions.append(test_pred[:,1])
+    #     # Make predictions - note the use of proba
+    #     test_pred = model.predict_proba(eachDataPoint)
+    #     testPredictions.append(test_pred[:,1])
 
-    pd.DataFrame(testPredictions, columns=['target']).to_csv('predictions.csv', index=False)
+    pd.DataFrame(testPredictions, columns=['target']).to_csv('/Users/vignesh/Desktop/Projects/Econet/predictions.csv', index=False)
 
     """
     'measure_gust02', 'measure_gust10''measure_wd02', 'measure_wd10' these 4 features do not exist in the train data they only exist in the test data!!!
