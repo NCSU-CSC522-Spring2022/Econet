@@ -25,16 +25,17 @@ import datetime
 class TestPipeLine():
     def __init__(self, modelsBasePath, testFilePath):
         self.basePath = modelsBasePath
-        self.modelFileList = glob.glob(self.basePath + "*.sav")
+        self.modelFileList = glob.glob(self.basePath + "*.sav") #get paths of all models created by train pipeline
         self.testFilePath = testFilePath
         
-        self.springModel = None
+        self.springModel = None #initialize model variables
         self.summer1Model = None
         self.summer2Model = None
         self.fall1Model = None
         self.fall2Model = None
         self.winterModel = None
     
+    #load models into the model variables (depending on seasons)
     def loadModels(self):
         # print(self.modelFileList)
         for modelPath in self.modelFileList:
@@ -55,7 +56,7 @@ class TestPipeLine():
             elif "winter" in modelPath:
                 self.winterModel = model
 
-
+    #split the test data based on seasons (fall1, fall2, winter, spring, summer1, summer2)
     def splitTestDf(self, myTestDfX):
 
         springStart = datetime.datetime(2021, 3, 1)
@@ -91,33 +92,33 @@ class TestPipeLine():
 
         return springDf, summer1Df, summer2Df, fall1Df, fall2Df, winterDf
     
-
+    #predict the probablity based on the models and the season
     def predictClasses(self, dataFrame):
         springDf, summer1Df, summer2Df, fall1Df, fall2Df, winterDf = self.splitTestDf(dataFrame)
         # return
 
         # Drop OB and station
-        springDf = springDf.drop(["Ob", "Station"], axis = 1)
+        springDf = springDf.drop(["Ob"], axis = 1)
         springPredict = self.springModel.predict_proba(springDf)
         springPredictDf = pd.DataFrame(springPredict[:,1], index=springDf.index)
 
-        summer1Df = summer1Df.drop(["Ob", "Station"], axis = 1)
+        summer1Df = summer1Df.drop(["Ob"], axis = 1)
         summer1Predict = self.summer1Model.predict_proba(summer1Df)
         summer1PredictDf = pd.DataFrame(summer1Predict[:,1], index=summer1Df.index)
 
-        summer2Df = summer2Df.drop(["Ob", "Station"], axis = 1)
+        summer2Df = summer2Df.drop(["Ob"], axis = 1)
         summer2Predict = self.summer2Model.predict_proba(summer2Df)
         summer2PredictDf = pd.DataFrame(summer2Predict[:,1], index=summer2Df.index)
 
-        fall1Df = fall1Df.drop(["Ob", "Station"], axis = 1)
+        fall1Df = fall1Df.drop(["Ob"], axis = 1)
         fall1Predict = self.fall1Model.predict_proba(fall1Df)
         fall1PredictDf = pd.DataFrame(fall1Predict[:,1], index=fall1Df.index)
 
-        fall2Df = fall2Df.drop(["Ob", "Station"], axis = 1)
+        fall2Df = fall2Df.drop(["Ob"], axis = 1)
         fall2Predict = self.fall2Model.predict_proba(fall2Df)
         fall2PredictDf = pd.DataFrame(fall2Predict[:,1], index=fall2Df.index)
 
-        winterDf = winterDf.drop(["Ob", "Station"], axis = 1)
+        winterDf = winterDf.drop(["Ob"], axis = 1)
         winterPredict = self.winterModel.predict_proba(winterDf)
         winterPredictDf = pd.DataFrame(winterPredict[:,1], index=winterDf.index)
 
@@ -130,7 +131,7 @@ class TestPipeLine():
         # print(winterDf.head())
         return concatenatedDf
 
-
+    #deprecated
     def getSeasonValue(self, eachDataPoint):
         obValue = eachDataPoint["Ob"].values[0]
         # print(obValue)
@@ -173,9 +174,12 @@ class TestPipeLine():
 
 if __name__ == "__main__":
     modelPath1 = "C:/Users/ayrisbud/Downloads/aldaPipeline/final/Econet/models/"
+    modelPath2 = "/Users/vignesh/Desktop/Projects/Econet/models/"
+
     testFilePath1 = "C:/Users/ayrisbud/Downloads/aldaPipeline/final/Econet/testData/testEncoded.csv"
+    testFilePath2 = "/Users/vignesh/Desktop/Projects/Econet/testData/testEncoded.csv"
     
-    testObj = TestPipeLine(modelPath1, testFilePath1)
+    testObj = TestPipeLine(modelPath2, testFilePath2)
     testDf = pd.read_csv(testObj.testFilePath)
 
     testDf["Ob"] = pd.to_datetime(testDf["Ob"], infer_datetime_format=True)
@@ -190,7 +194,9 @@ if __name__ == "__main__":
     testPredictions.columns = ["target"]
 
     # pd.DataFrame(testPredictions, columns=['target']).to_csv('C:/Users/ayrisbud/Downloads/aldaPipeline/final/Econet/predictions.csv', index=False)
-    testPredictions.to_csv('C:/Users/ayrisbud/Downloads/aldaPipeline/final/Econet/predictions.csv', index=False)
+    predictionPath1 = 'C:/Users/ayrisbud/Downloads/aldaPipeline/final/Econet/predictions.csv'
+    predictionPath2 = '/Users/vignesh/Desktop/Projects/Econet/newPredictions/predictions.csv'
+    testPredictions.to_csv(predictionPath2, index=False)
 
     """
     'measure_gust02', 'measure_gust10''measure_wd02', 'measure_wd10' these 4 features do not exist in the train data they only exist in the test data!!!
