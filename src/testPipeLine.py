@@ -4,20 +4,8 @@ from multiprocessing import dummy
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.preprocessing import StandardScaler, OneHotEncoder
 import glob
 import os
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score, confusion_matrix, classification_report, f1_score
-from imblearn.over_sampling import SMOTE 
-from imblearn.under_sampling import TomekLinks 
-from sklearn.model_selection import GridSearchCV
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.linear_model import LogisticRegression
-import xgboost as xgb
-from sklearn.model_selection import RepeatedStratifiedKFold
-from sklearn.model_selection import cross_validate
 import pickle
 import datetime
 
@@ -28,7 +16,8 @@ class TestPipeLine():
         self.modelFileList = glob.glob(self.basePath + "*.sav") #get paths of all models created by train pipeline
         self.testFilePath = testFilePath
         
-        self.springModel = None #initialize model variables
+        #initialize model variables
+        self.springModel = None 
         self.summer1Model = None
         self.summer2Model = None
         self.fall1Model = None
@@ -37,7 +26,6 @@ class TestPipeLine():
     
     #load models into the model variables (depending on seasons)
     def loadModels(self):
-        # print(self.modelFileList)
         for modelPath in self.modelFileList:
             print(modelPath)
             springModelLoc = open(modelPath, 'rb')
@@ -94,8 +82,8 @@ class TestPipeLine():
     
     #predict the probablity based on the models and the season
     def predictClasses(self, dataFrame):
+
         springDf, summer1Df, summer2Df, fall1Df, fall2Df, winterDf = self.splitTestDf(dataFrame)
-        # return
 
         # Drop OB and station
         springDf = springDf.drop(["Ob"], axis = 1)
@@ -124,59 +112,13 @@ class TestPipeLine():
 
         concatenatedDf = pd.concat([summer1PredictDf, summer2PredictDf, fall1PredictDf, fall2PredictDf, winterPredictDf, springPredictDf], axis = 0)
         concatenatedDf = concatenatedDf.sort_index(ascending=True)
-        # concatenatedDf.to_csv("predictedValues.csv")
-        print(concatenatedDf.head())
-        # print(summerDf.head())
-        # print(fallDf.head())pyt
-        # print(winterDf.head())
+
         return concatenatedDf
-
-    #deprecated
-    def getSeasonValue(self, eachDataPoint):
-        obValue = eachDataPoint["Ob"].values[0]
-        # print(obValue)
-        obValue = pd.to_datetime(obValue, infer_datetime_format=True)
-
-        springStart = datetime.datetime(2021, 3, 1)
-        springEnd = datetime.datetime(2021, 5, 31, 23, 59, 59)   # add date and time context of end dates to make it inclusive
-
-        summer1Start = datetime.datetime(2021, 6, 1)
-        summer1End = datetime.datetime(2021, 7, 15, 23, 59, 59)
-        summer2Start = datetime.datetime(2021, 7, 16)
-        summer2End = datetime.datetime(2021, 8, 31, 23, 59, 59) # add date and time context of end dates to make it inclusive
-
-        fall1Start = datetime.datetime(2021, 9, 1)
-        fall1End = datetime.datetime(2021, 10, 15, 23, 59, 59)
-        fall2Start = datetime.datetime(2021, 10, 16)
-        fall2End = datetime.datetime(2021, 11, 30, 23, 59, 59)   # add date and time context of end dates to make it inclusive
-
-        winterStart = datetime.datetime(2021, 12, 1)
-        winterEnd = datetime.datetime(2021, 12, 31, 23, 59, 59)
-        winter2Start = datetime.datetime(2021, 1, 1)
-        winter2End = datetime.datetime(2021, 2, 28, 23, 59, 59) # add date and time context of end dates to make it inclusive
-
-        modelPath = ""
-        if (obValue >= springStart) & (obValue <= springEnd):
-           modelPath = "spring"
-        elif (obValue >= summer1Start) & (obValue <= summer1End):
-            modelPath = "summer1"
-        elif (obValue >= summer2Start) & (obValue <= summer2End):
-            modelPath = "summer2"
-        elif (obValue >= fall1Start) & (obValue <= fall1End):
-            modelPath = "fall1"
-        elif (obValue >= fall2Start) & (obValue <= fall2End):
-            modelPath = "fall2"
-        elif ((obValue >= winterStart) & (obValue <= winterEnd)) or ((obValue >= winter2Start) and (obValue <= winter2End)):
-            modelPath = "winter"
-        # print(modelPath)
-        return modelPath
-
+        
 
 if __name__ == "__main__":
-    modelPath1 = "C:/Users/ayrisbud/Downloads/aldaPipeline/final/Econet/models/"
     modelPath2 = "/Users/vignesh/Desktop/Projects/Econet/models/"
 
-    testFilePath1 = "C:/Users/ayrisbud/Downloads/aldaPipeline/final/Econet/testData/testEncoded.csv"
     testFilePath2 = "/Users/vignesh/Desktop/Projects/Econet/testData/testEncoded.csv"
     
     testObj = TestPipeLine(modelPath2, testFilePath2)
@@ -193,11 +135,5 @@ if __name__ == "__main__":
     print(testPredictions.shape)
     testPredictions.columns = ["target"]
 
-    # pd.DataFrame(testPredictions, columns=['target']).to_csv('C:/Users/ayrisbud/Downloads/aldaPipeline/final/Econet/predictions.csv', index=False)
-    predictionPath1 = 'C:/Users/ayrisbud/Downloads/aldaPipeline/final/Econet/predictions.csv'
     predictionPath2 = '/Users/vignesh/Desktop/Projects/Econet/newPredictions/predictions.csv'
     testPredictions.to_csv(predictionPath2, index=False)
-
-    """
-    'measure_gust02', 'measure_gust10''measure_wd02', 'measure_wd10' these 4 features do not exist in the train data they only exist in the test data!!!
-    """
